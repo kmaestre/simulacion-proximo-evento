@@ -60,6 +60,7 @@
 
 
   <script>
+    var fArrival;
     $('#dataInput').modal()
 
     $(function () {
@@ -132,9 +133,7 @@
       `
 
       $('#form').html(html)
-
     }
-
     const setFirstArrivalQuestion = () => {
       let html = `
         <div class="modal-body text-center">
@@ -151,18 +150,25 @@
       `
 
       $('#form').html(html)
-
     }
-
     const setFirstArrival = () => {
       let html = `
         <div class="modal-body text-center">
           <div class="form-group col-12 mx-auto">
             <label>Tiempo (seg)</label>
-            <input type="text" class="form-control input-sm" id="firstReq" oninput="soloNumeros()">
+            <input type="text" class="form-control input-sm" id="firstReq" oninput="soloNumeros()" onfocus="removeBorders()">
           </div>
           <div class="form-group col-5 mx-auto">
-            <button class="btn btn-dark btn-block" onclick="fArrival = parseInt($('#firstReq').val()); setFirstDepartureQuestion()">Aceptar</button>
+            <button class="btn btn-dark btn-block" onclick="
+              let val = $('#firstReq').val()
+              if (val == '') {
+                document.getElementById('firstReq').style = 'border: 1px solid red; color: red;'
+                return
+              }
+
+              fArrival = val
+              setFirstDepartureQuestion()
+            ">Aceptar</button>
           </div>
         </div>
       `
@@ -185,8 +191,6 @@
       $('#form').html(html)
     }
 
-    /*
-      `*/
   </script>
 </body>
 
