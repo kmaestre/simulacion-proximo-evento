@@ -268,25 +268,46 @@
 
     //si ocurre E2, generar proximo E2 si NE != 0 y E1 si no existe en lista
     const execE2 = () => {
-      generatedEvent = ''
-      let u = parseFloat(Math.random().toString().slice(0, 5))
-      rgNumber.push(u)
-      let newEvent = { type: 'E1', time: clock + weibull(0, 1.06793, 112.482, u), ri: u }
-      generatedEvent = newEvent.type + ' '
-      eventList.push(newEvent)
-      if (!eventList.filter(e => e.type == 'E2').length) {
-        u = parseFloat(Math.random().toString().slice(0, 5))
-        rgNumber.push(u)
-        newEvent = { type: 'E2', time: clock + weibull(26.954, 1.10966, 34.2411, u), ri: u }
-        generatedEvent = newEvent.type + ' '
-        eventList.push(newEvent)
+      departureCount += 1
+      entities -= 1
+      let res = { activeEvent: null, generated: '', ris: [] }
+      res.activeEvent = eventList.splice(0, 1)[0]
+      clock = res.activeEvent.time
+      let newE2 = null
+      let newE1 = null
+      if (entities > 0) {
+        res.ris.push(Math.random())
+        newE2 = generateEvent(2, res.ris[res.ris.length - 1])
+        eventList.push(newE2)
       }
+      if (!arrivalExists()) {
+        res.ris.push(Math.random())
+        newE1 = generateEvent(1, res.ris[res.ris.length - 1])
+        eventList.push(newE1)
+      }
+
+      if (newE2 && newE1) {
+        res.generated += `E2<sub>(${newE2.time.toFixed(2)})</sub>/E1<sub>(${newE1.time.toFixed(2)})</sub>`
+      } else if (newE1 && !newE2) {
+        res.generated += `E1<sub>(${newE1.time.toFixed(2)})</sub>`
+      } else if (!newE1 && newE2) {
+        res.generated += `E2<sub>(${newE2.time.toFixed(2)})</sub>`
+      } else if (!newE2 && !newE1) {
+        res.generated = '-'
+      }
+
+      if (res.ris.length == 0) res.ris = '-'
+
+      sortEventList()
+      return res
     }
 
     //si ocurre E1, generar nuevo E1 y E2 si no existe en lista
     const execE1 = () => {
+      entities += 1
+      arrivalCount += 1
       let res = { activeEvent: null, generated: null, ris: [] }
-      res.activeEvent = eventList.pop()
+      res.activeEvent = eventList.splice(0, 1)[0]
       clock = res.activeEvent.time
       res.ris.push(Math.random())
       let newE1 = generateEvent(1, res.ris[0])
@@ -298,8 +319,9 @@
         eventList.push(newE2)
       }
 
-      res.generated = `E1<sub>(${newE1.time.toFixed(2)})</sub>/${newE2 ? 'E2<sub>('+newE2.time.toFixed(2)+')</sub>' : ''}`
+      res.generated = `E1<sub>(${newE1.time.toFixed(2)})</sub>${newE2 ? '/E2<sub>(' + newE2.time.toFixed(2) + ')</sub>' : ''}`
 
+      sortEventList()
       return res
     }
 
@@ -371,7 +393,7 @@
       $('#tabla').css('display', 'block')
       let stop = false
       stopCondition = '1'
-      stopConditionValue = 46
+      stopConditionValue = 10
 
       //variables de linea a imprimir
       let EQO = '-'
@@ -381,6 +403,7 @@
 
       printEventRow(clock, EQO, entities, EG, Ri, ES)
       while (!stop && entities < 50) {
+        sortEventList()
         Ri = Math.random()
         if (stopCondition == '1' && stopConditionValue <= arrivalCount) stop = true
         else if (stopCondition == '2' && stopConditionValue <= departureCount) stop = true
@@ -388,18 +411,27 @@
         if (!entities) {
           if (arrivalExists()) {
             let { activeEvent, generated, ris } = execE1()
-            entities += 1
             sortEventList()
-            printEventRow(clock, 'E1', entities, `${ris.length == 1 ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList() + ES)
+            printEventRow(clock, 'E1', entities, `${ris == '-' ? ris : ris.length == 1 ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList() + ES)
           } else {
             let newEvent = generateEvent(1, Ri)
             eventList.push(newEvent)
             sortEventList()
-            EG = 'E1<sub>('+newEvent.time.toFixed(2)+')</sub>'
+            EG = 'E1<sub>(' + newEvent.time.toFixed(2) + ')</sub>'
             printEventRow(clock, '-', entities, Ri.toFixed(3), EG, printEventList() + ES)
           }
         } else {
-          entities += 1
+          if (eventList.length && eventList[0].type == 'E1') {
+            let { activeEvent, ris, generated } = execE1()
+            sortEventList()
+            printEventList()
+            printEventRow(clock, 'E1', entities, `${ris.length == 1 ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList() + ES)
+          } else if (eventList.length && eventList[0].type == 'E2') {
+            let { activeEvent, ris, generated } = execE2()
+            sortEventList()
+            printEventList()
+            printEventRow(clock, 'E2', entities, `${ris == '-' ? ris : (ris.length == 1) ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList() + ES)
+          }
         }
       }
 
