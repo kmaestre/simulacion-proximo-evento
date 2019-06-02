@@ -34,12 +34,12 @@
         <th>LE</th>
       </thead>
       <tbody id="tbody">
-        
+
       </tbody>
     </table>
   </div>
 
-  <div id="entradadatos" class="full row d-flex justify-content-center align-items-center">
+  <div id="entradadatos" class="full row d-none justify-content-center align-items-center">
     <div id="form">
       <h4 class="text-center">Parametros Iniciales:</h4>
       <br>
@@ -88,8 +88,8 @@
     var entities = 0;
     var eventList = [];
     var rgNumber = [];
-    var stopCondition
-    var stopConditionValue
+    var stopCondition = '3'
+    var stopConditionValue = 12000
     var arrivalCount = 0
     var departureCount = 0
     var generatedEvent
@@ -259,46 +259,48 @@
     }
 
     const weibull = (g, a, b, u) => {
-      return (g+b*(-Math.log(u))**(1/a)).toFixed(2)
+      return (g + b * (-Math.log(u)) ** (1 / a))
     }
 
     const sortEventList = () => {
       eventList.sort((a, b) => (a.time - b.time))
     }
 
-    //si ocurre E1, generar nuevo E1 y E2 si no existe en lista
-    const execE1 = () => {
-      generatedEvent = ''
-      let u = parseFloat(Math.random().toString().slice(0, 5))
-      rgNumber.push(u)
-      let newEvent = {type: 'E1', time: clock+parseFloat(weibull(0,1.06793, 112.482, u)), ri: u}
-      generatedEvent = newEvent.type + ' '
-      eventList.push(newEvent)
-      if (!eventList.filter(e => e.type == 'E2').length) {
-        u = parseFloat(Math.random().toString().slice(0, 5))
-        rgNumber.push(u)
-        newEvent = {type: 'E2', time: clock+parseFloat(weibull(26.954,1.10966, 34.2411, u)), ri: u}
-        generatedEvent = newEvent.type + ' '
-        eventList.push(newEvent)
-      }
-    }
     //si ocurre E2, generar proximo E2 si NE != 0 y E1 si no existe en lista
     const execE2 = () => {
       generatedEvent = ''
       let u = parseFloat(Math.random().toString().slice(0, 5))
       rgNumber.push(u)
-      let newEvent = {type: 'E2', time: clock+parseFloat(weibull(26.954,1.10966, 34.2411, u)), ri: u}
+      let newEvent = { type: 'E1', time: clock + weibull(0, 1.06793, 112.482, u), ri: u }
       generatedEvent = newEvent.type + ' '
-      if (entities > 0) {
-        eventList.push(newEvent)
-      }
-      if (!eventList.filter(e => e.type == 'E1').length) {
+      eventList.push(newEvent)
+      if (!eventList.filter(e => e.type == 'E2').length) {
         u = parseFloat(Math.random().toString().slice(0, 5))
         rgNumber.push(u)
-        newEvent = {type: 'E1', time: clock+parseFloat(weibull(0,1.06793, 112.482, u)), ri: u}
+        newEvent = { type: 'E2', time: clock + weibull(26.954, 1.10966, 34.2411, u), ri: u }
         generatedEvent = newEvent.type + ' '
         eventList.push(newEvent)
       }
+    }
+
+    //si ocurre E1, generar nuevo E1 y E2 si no existe en lista
+    const execE1 = () => {
+      let res = { activeEvent: null, generated: null, ris: [] }
+      res.activeEvent = eventList.pop()
+      clock = res.activeEvent.time
+      res.ris.push(Math.random())
+      let newE1 = generateEvent(1, res.ris[0])
+      let newE2 = null
+      eventList.push(newE1)
+      if (!departureExists()) {
+        res.ris.push(Math.random())
+        newE2 = generateEvent(2, res.ris[1])
+        eventList.push(newE2)
+      }
+
+      res.generated = `E1<sub>(${newE1.time.toFixed(2)})</sub>/${newE2 ? 'E2<sub>('+newE2.time.toFixed(2)+')</sub>' : ''}`
+
+      return res
     }
 
     const getNextEvent = () => {
@@ -317,86 +319,93 @@
     const printEventList = () => {
       let arr = '';
       eventList.forEach(e => {
-        arr = arr + '' +(e.type+'/').toString() + e.time .toString() + ' '
+        arr = arr + '' + (e.type + '<sub>(') + (e.time.toFixed(2)) + ')</sub> '
       })
 
       return arr
     }
+
+    const arrivalExists = () => {
+      let res = false
+      for (let i = 0; i < eventList.length; i++) {
+        if (eventList[i].type == 'E1') {
+          res = true
+          break
+        }
+      }
+
+      return res
+    }
+    const departureExists = () => {
+      let res = false
+      for (let i = 0; i < eventList.length; i++) {
+        if (eventList[i].type == 'E2') {
+          res = true
+          break
+        }
+      }
+
+      return res
+    }
+
+    const generateEvent = (t, u) => {
+      if (t == 1) {
+        return { type: 'E1', time: clock + weibull(0, 1.06793, 112.482, u), ri: u }
+      } else {
+        return { type: 'E2', time: clock + weibull(26.954, 1.10966, 34.2411, u), ri: u }
+      }
+    }
+
+    const printEventRow = (a, b, c, d, e, f) => {
+      $('tbody').append(`<tr>
+          <td>${(a).toFixed(2)}</td>
+          <td>${b}</td>
+          <td>${c}</td>
+          <td>${d}</td>
+          <td>${e}</td>
+          <td>${f}
+        </tr>`)
+    }
+
     const main = () => {
-      document.getElementById('entradadatos').style = 'display: none!important;'
       $('#tabla').css('display', 'block')
       let stop = false
       stopCondition = '1'
       stopConditionValue = 46
-      
 
+      //variables de linea a imprimir
+      let EQO = '-'
+      let EG = '-'
+      let Ri = '-'
+      let ES = (stopCondition == '3') ? ` E3<sub>(${stopConditionValue.toFixed(2)})</sub>` : ''
+
+      printEventRow(clock, EQO, entities, EG, Ri, ES)
       while (!stop && entities < 50) {
-        sortEventList()
+        Ri = Math.random()
         if (stopCondition == '1' && stopConditionValue <= arrivalCount) stop = true
         else if (stopCondition == '2' && stopConditionValue <= departureCount) stop = true
         else if (stopCondition == '3' && stopConditionValue <= clock) stop = true
         if (!entities) {
-          let u = parseFloat(Math.random().toString().slice(0, 5))
-          rgNumber.push(u)
-          let newEvent = {type: 'E1', time: clock+parseFloat(weibull(0,1.06793, 112.482, u)), ri: u}
-          arrivals.push(newEvent)
-          clock = parseFloat(newEvent.time.toFixed(2))
-          entities += 1
-          arrivalCount += 1
-          execE1()
-        }
-          //si hay evento en lista, adelantar reloj hasta el proximo evento
-          if (eventList.length) {
-            activeEvent = eventList.splice(getNextEvent(), 1)[0]
-            clock = parseFloat(activeEvent.time.toFixed(2))
-            if (activeEvent.type == 'E1') {
-              $('#tbody').append(`<tr>
-      <td>${(activeEvent.time).toFixed(3)}</td>
-      <td>${activeEvent.type}</td>
-      <td>${entities}</td>
-      <td>${activeEvent.ri}</td>
-      <td>${generatedEvent}</td>
-      <td>${printEventList()}</td>
-    </tr>`)
-              entities += 1
-              arrivals.push(activeEvent)
-              arrivalCount += 1
-              execE1()
-            } else if (activeEvent.type == 'E2') {
-              $('#tbody').append(`<tr>
-      <td>${(activeEvent.time).toFixed(3)}</td>
-      <td>${activeEvent.type}</td>
-      <td>${entities}</td>
-      <td>${activeEvent.ri}</td>
-      <td>${generatedEvent}</td>
-      <td>${printEventList()}</td>
-    </tr>`)
-              entities -= 1
-              departures.push(activeEvent)
-              departureCount += 1
-              execE2()
-            }
-          } else {
-            let newEvent = {type: 'E1', time: clock+parseFloat(weibull(0,1.06793, 112.482, u))}
-            $('#tbody').append(`<tr>
-      <td>${(activeEvent.time).toFixed(3)}</td>
-      <td>${activeEvent.type}</td>
-      <td>${entities}</td>
-      <td>${activeEvent.ri}</td>
-      <td>${generatedEvent}</td>
-      <td>${printEventList()}</td>
-    </tr>`)
-            arrivals.push(newEvent)
-            clock = parseFloat(newEvent.time.toFixed(2))
+          if (arrivalExists()) {
+            let { activeEvent, generated, ris } = execE1()
             entities += 1
-            arrivalCount += 1
-            execE1()
+            sortEventList()
+            printEventRow(clock, 'E1', entities, `${ris.length == 1 ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList() + ES)
+          } else {
+            let newEvent = generateEvent(1, Ri)
+            eventList.push(newEvent)
+            sortEventList()
+            EG = 'E1<sub>('+newEvent.time.toFixed(2)+')</sub>'
+            printEventRow(clock, '-', entities, Ri.toFixed(3), EG, printEventList() + ES)
           }
+        } else {
+          entities += 1
         }
-      alert()
+      }
+
       $('body').append('Solicitudes de Servicio:' + arrivalCount)
       $('body').append('<br>')
-      $('body').append('Entidades Atendidas:' + departureCount)  
+      $('body').append('Entidades Atendidas:' + departureCount)
       $('body').append('<br>')
       $('body').append('Entidades en Cola:' + entities)
     }
