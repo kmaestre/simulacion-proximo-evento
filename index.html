@@ -24,8 +24,8 @@
 
 <body class="container-fluid">
   <div id="tabla" class="row" style="display: none">
-    <table class="table table-striped table-sm">
-      <thead>
+    <table class="col-8 mx-auto table table-striped table-sm table-bordered">
+      <thead class="text-center">
         <th>TR</th>
         <th>EQO</th>
         <th>NE</th>
@@ -33,7 +33,7 @@
         <th>EG</th>
         <th>LE</th>
       </thead>
-      <tbody id="tbody">
+      <tbody id="tbody" class="text-center">
 
       </tbody>
     </table>
@@ -392,8 +392,8 @@
     const main = () => {
       $('#tabla').css('display', 'block')
       let stop = false
-      stopCondition = '1'
-      stopConditionValue = 10
+      stopCondition = '2'
+      stopConditionValue = 30
 
       //variables de linea a imprimir
       let EQO = '-'
@@ -435,11 +435,14 @@
         }
       }
 
-      $('body').append('Solicitudes de Servicio:' + arrivalCount)
-      $('body').append('<br>')
-      $('body').append('Entidades Atendidas:' + departureCount)
-      $('body').append('<br>')
-      $('body').append('Entidades en Cola:' + entities)
+      $('#tabla').append(`
+        <div class="col-10 mx-auto card px-3 py-2">
+          <h4 class="text-center">Estado Final del Sistema</h4> 
+          <span><strong>Solicitudes de Servicio:</strong> ${arrivalCount}</span>
+          <span><strong>Entidades Atendidas:</strong> ${departureCount}</span>
+          <span><strong>Entidades en Cola:</strong> ${entities}</span>
+        </div>
+      `)
     }
 
     /*fin*/
