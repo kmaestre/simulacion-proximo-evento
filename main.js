@@ -123,9 +123,13 @@ const departureExists = () => {
 }
 const generateEvent = (t, u) => {
   if (t == 1) {
-    return { type: 'E1', time: clock + weibull(0, 1.06793, 112.482, u), ri: u }
+    let w = weibull(0, 1.06793, 112.482, u)
+    arrivals.push([w, u])
+    return { type: 'E1', time: clock + w, ri: u }
   } else {
-    return { type: 'E2', time: clock + weibull(26.954, 1.10966, 34.2411, u), ri: u }
+    let w = weibull(26.954, 1.10966, 34.2411, u)
+    departures.push([w, u])
+    return { type: 'E2', time: clock + w, ri: u }
   }
 }
 const printEventRow = (a, b, c, d, e, f) => {
@@ -159,7 +163,7 @@ const main = () => {
     else if (stopCondition == '2' && stopConditionValue <= departureCount) break
     else if (stopCondition == '3' && stopConditionValue <= clock) {
       clock = stopConditionValue
-      eventList.splice(0,1)
+      eventList.splice(0, 1)
       printEventRow(stopConditionValue, 'E3', entities, '-', '-', printEventList())
       break
     }
@@ -197,12 +201,36 @@ const main = () => {
 
   }
 
+  $('#patrones').append(`
+    <table class="table table-bordered table-striped table-sm" style="width:100%">
+      <thead>
+        <tr><th>Nº</th><th>Patron de Llegada</th><th>Ri</th></tr>
+      </thead>
+      <tbody id="patLlegada"></tbody>
+    </table>
+`)
+  arrivals.forEach((a, i) => {
+    $('#patLlegada').append(`<tr><td>${i}</td><td>${a[0].toFixed(3)}</td><td>${a[1].toFixed(3)}</td></tr>`)
+  })
+
+  $('#patrones').append(`
+    <table class="table table-bordered table-striped table-sm" style="width:100%">
+      <thead>
+        <tr><th>Nº</th><th>Patron de Llegada</th></tr>
+      </thead>
+      <tbody id="patSalida"></tbody>
+    </table>
+`)
+  departures.forEach((d, i) => {
+    $('#patSalida').append(`<tr><td>${i}</td><td>${d[0].toFixed(3)}</td><td>${d[1].toFixed(3)}</td></tr>`)
+  })
+
   $('#tabla').append(`
-        <div class="col-10 mx-auto card px-3 py-2gt">
-          <h4 class="text-center">Estado Final del Sistema</h4> 
-          <span><strong>Solicitudes de Servicio:</strong> ${arrivalCount}</span>
-          <span><strong>Entidades Atendidas:</strong> ${departureCount}</span>
-          <span><strong>Entidades en Cola:</strong> ${entities}</span>
-        </div>
-      `)
+    <div class="col-10 mx-auto card px-3 py-2gt">
+      <h4 class="text-center">Estado Final del Sistema</h4> 
+      <span><strong>Solicitudes de Servicio:</strong> ${arrivalCount}</span>
+      <span><strong>Entidades Atendidas:</strong> ${departureCount}</span>
+      <span><strong>Entidades en Cola:</strong> ${entities}</span>
+    </div>
+  `)
 }
