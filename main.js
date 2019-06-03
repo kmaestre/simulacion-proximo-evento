@@ -10,7 +10,7 @@ var entities = 0;
 var eventList = [];
 var rgNumber = [];
 var stopCondition = '3'
-var stopConditionValue = 12000
+var stopConditionValue = 4000
 var arrivalCount = 0
 var departureCount = 0
 var generatedEvent
@@ -135,53 +135,66 @@ const printEventRow = (a, b, c, d, e, f) => {
           <td>${c}</td>
           <td>${d}</td>
           <td>${e}</td>
-          <td>${f}
+          <td class="text-left">${f}</td>
         </tr>`)
 }
 const main = () => {
-  $('#tabla').css('display', 'block')
+  $('#entradadatos').toggleClass('d-none')
+  setTimeout(function () {
+    $('#tabla').toggleClass('d-none')
+  }, 500)
   let stop = false
-  stopCondition = '2'
-  stopConditionValue = 30
 
-  //variables de linea a imprimir
-  let EQO = '-'
-  let EG = '-'
-  let Ri = '-'
-  let ES = (stopCondition == '3') ? ` E3<sub>(${stopConditionValue.toFixed(2)})</sub>` : ''
+  if (entities > 0 && !fDeparture) {
+    eventList.push(generateEvent(2, Math.random()))
+  }
 
-  printEventRow(clock, EQO, entities, EG, Ri, ES)
-  while (!stop && entities < 50) {
+  if (stopCondition == '3') {
+    eventList.push({ type: 'E3', time: stopConditionValue, ri: 0 })
+  }
+
+  printEventRow(clock, '-', entities, '-', '-', printEventList())
+  while (!stop) {
+    if (stopCondition == '1' && stopConditionValue <= arrivalCount) break
+    else if (stopCondition == '2' && stopConditionValue <= departureCount) break
+    else if (stopCondition == '3' && stopConditionValue <= clock) {
+      clock = stopConditionValue
+      eventList.splice(0,1)
+      printEventRow(stopConditionValue, 'E3', entities, '-', '-', printEventList())
+      break
+    }
     sortEventList()
     Ri = Math.random()
-    if (stopCondition == '1' && stopConditionValue <= arrivalCount) stop = true
-    else if (stopCondition == '2' && stopConditionValue <= departureCount) stop = true
-    else if (stopCondition == '3' && stopConditionValue <= clock) stop = true
     if (!entities) {
       if (arrivalExists()) {
-        let { activeEvent, generated, ris } = execE1()
+        let { generated, ris } = execE1()
         sortEventList()
-        printEventRow(clock, 'E1', entities, `${ris == '-' ? ris : ris.length == 1 ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList() + ES)
+        printEventRow(clock, 'E1', entities, `${ris == '-' ? ris : ris.length == 1 ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList())
       } else {
         let newEvent = generateEvent(1, Ri)
         eventList.push(newEvent)
         sortEventList()
         EG = 'E1<sub>(' + newEvent.time.toFixed(2) + ')</sub>'
-        printEventRow(clock, '-', entities, Ri.toFixed(3), EG, printEventList() + ES)
+        printEventRow(clock, '-', entities, Ri.toFixed(3), EG, printEventList())
       }
     } else {
       if (eventList.length && eventList[0].type == 'E1') {
-        let { activeEvent, ris, generated } = execE1()
+        let { ris, generated } = execE1()
         sortEventList()
         printEventList()
-        printEventRow(clock, 'E1', entities, `${ris.length == 1 ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList() + ES)
+        printEventRow(clock, 'E1', entities, `${ris.length == 1 ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList())
       } else if (eventList.length && eventList[0].type == 'E2') {
-        let { activeEvent, ris, generated } = execE2()
+        let { ris, generated } = execE2()
         sortEventList()
         printEventList()
-        printEventRow(clock, 'E2', entities, `${ris == '-' ? ris : (ris.length == 1) ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList() + ES)
+        printEventRow(clock, 'E2', entities, `${ris == '-' ? ris : (ris.length == 1) ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList())
       }
     }
+
+    if (stopCondition == '3' && eventList[0].type == 'E3') {
+      clock = stopConditionValue
+    }
+
   }
 
   $('#tabla').append(`

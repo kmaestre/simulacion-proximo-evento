@@ -45,9 +45,9 @@ const setInput = () => {
 const runSimulation = () => {
   let stopOption = document.getElementById('stop').value
   let stopValue = ''
-  let initEntities = document.getElementById('entities').value
+  let initEntities = parseInt(document.getElementById('entities').value)
 
-  if (!initEntities) {
+  if (isNaN(initEntities) || initEntities < 0) {
     document.getElementById('entities').style = 'border: 1px solid red; color: red;'
     return
   } else {
@@ -55,13 +55,13 @@ const runSimulation = () => {
   }
   if (stopOption == '1' && document.getElementById('stopValue1').value != '') {
     // preparar condicion de parada para este caso 
-    stopValue = document.getElementById('stopValue1').value
+    stopValue = parseFloat(document.getElementById('stopValue1').value)
   } else if (stopOption == '2' && document.getElementById('stopValue1').value != '') {
     // preparar condicion de parada para este caso
-    stopValue = document.getElementById('stopValue1').value
+    stopValue = parseFloat(document.getElementById('stopValue1').value)
   } else if (stopOption == '3' && document.getElementById('stopValue2').value != '') {
     // preparar condicion de parada para este caso
-    stopValue = document.getElementById('stopValue2').value
+    stopValue = parseFloat(document.getElementById('stopValue2').value)
   } else {
     if (!stopValue) {
       if (stopOption == '1' || stopOption == '2') {
@@ -72,7 +72,7 @@ const runSimulation = () => {
       }
       return
     }
-    alertify.alert('Info', 'La simulacion se detendra al llegar a los ' + parseInt(stopValue) + ' segundos')
+    alertify.alert('Info', 'La simulacion se detendra al llegar a los ' + parseFloat(stopValue) + ' segundos')
   }
 
   stopCondition = stopOption
