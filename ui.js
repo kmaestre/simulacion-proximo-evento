@@ -151,6 +151,9 @@ const setFirstDeparture = () => {
               if (val == '') {
                 document.getElementById('firstDep').style = 'border: 1px solid red; color: red;'
                 return
+              } else if (parseFloat(val) < fArrival) {
+                alert('El tiempo de la primera salida debe ser mayor al tiempo de la primera solicitud.')
+                return
               }
               fDeparture = val
               main()

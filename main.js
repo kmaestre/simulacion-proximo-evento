@@ -152,10 +152,18 @@ const main = () => {
   if (entities > 0 && !fDeparture) {
     eventList.push(generateEvent(2, Math.random()))
   }
+  if (fDeparture) {
+    eventList.push({type: 'E2', time: parseFloat(fDeparture), ri: 0})
+  }
+  if (fArrival){
+    eventList.push({type: 'E1', time: parseFloat(fArrival), ri: 0})
+  }
 
   if (stopCondition == '3') {
     eventList.push({ type: 'E3', time: stopConditionValue, ri: 0 })
   }
+
+  sortEventList()
 
   printEventRow(clock, '-', entities, '-', '-', printEventList())
   while (!stop) {
@@ -216,7 +224,7 @@ const main = () => {
   $('#patrones').append(`
     <table class="table table-bordered table-striped table-sm" style="width:100%">
       <thead>
-        <tr><th>Nº</th><th>Patron de Llegada</th></tr>
+        <tr><th>Nº</th><th>Patron de Servicio</th></tr>
       </thead>
       <tbody id="patSalida"></tbody>
     </table>
