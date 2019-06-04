@@ -11,8 +11,15 @@ var eventList = [];
 var rgNumber = [];
 var stopCondition = '3'
 var stopConditionValue = 4000
+/*Variables para analisis*/
 var arrivalCount = 0
 var departureCount = 0
+var maxQueue = 0
+var lastArrived = 0
+var TBA_Acum = 0;
+var lastDeparture = 0
+var TBD_Acum = 0 
+var idleTime = 0
 var generatedEvent
 
 const weibull = (g, a, b, u) => {
@@ -179,7 +186,9 @@ const main = () => {
     Ri = Math.random()
     if (!entities) {
       if (arrivalExists()) {
+        let prevClock = clock
         let { generated, ris } = execE1()
+        idleTime += clock - prevClock
         sortEventList()
         printEventRow(clock, 'E1', entities, `${ris == '-' ? ris : ris.length == 1 ? ris[0].toFixed(3) : ris[0].toFixed(3) + '/' + ris[1].toFixed(3)}`, generated, printEventList())
       } else {
@@ -235,10 +244,12 @@ const main = () => {
 
   $('#tabla').append(`
     <div class="col-10 mx-auto mb-1 card px-3 py-2">
-      <h4 class="text-center">Estado Final del Sistema</h4> 
+      <h4 class="text-center">Resultados</h4> 
       <span><strong>Solicitudes de Servicio:</strong> ${arrivalCount}</span>
       <span><strong>Entidades Atendidas:</strong> ${departureCount}</span>
       <span><strong>Entidades en Cola:</strong> ${entities}</span>
+      <span><strong>Eventos pendientes:</strong> ${printEventList()}</span>
+      <span><strong>Tiempo de Ocio:</strong> ${idleTime.toFixed(2)} Seg</span>
     </div>
   `)
 }
