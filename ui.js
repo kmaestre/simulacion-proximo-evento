@@ -103,7 +103,10 @@ const setFirstArrivalQuestion = () => {
           <p>¿Desea indicar el tiempo de la primera <strong>solicitud de servicio?</strong></p>
           <div class="row">
             <div class="form-group col-5 mx-auto">
-              <button class="btn btn-danger btn-block" onclick="fArrival = null;setFirstDepartureQuestion()">No</button>
+              <button class="btn btn-danger btn-block" onclick="
+              fArrival = null;
+              if (entities > 0) setFirstDepartureQuestion()
+              else main()">No</button>
             </div>
             <div class="form-group col-5 mx-auto">
               <button class="btn btn-dark btn-block" onclick="setFirstArrival()">Si</button>

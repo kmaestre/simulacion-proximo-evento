@@ -149,8 +149,8 @@ const main = () => {
   }, 500)
   let stop = false
 
-  if (entities > 0 && !fDeparture) {
-    eventList.push(generateEvent(2, Math.random()))
+  if (entities > 0 && !fDeparture && !fArrival) {
+    eventList.push(generateEvent(1, Math.random()))
   }
   if (fDeparture) {
     eventList.push({type: 'E2', time: parseFloat(fDeparture), ri: 0})
@@ -234,7 +234,7 @@ const main = () => {
   })
 
   $('#tabla').append(`
-    <div class="col-10 mx-auto card px-3 py-2gt">
+    <div class="col-10 mx-auto mb-1 card px-3 py-2">
       <h4 class="text-center">Estado Final del Sistema</h4> 
       <span><strong>Solicitudes de Servicio:</strong> ${arrivalCount}</span>
       <span><strong>Entidades Atendidas:</strong> ${departureCount}</span>
