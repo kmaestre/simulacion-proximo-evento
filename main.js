@@ -174,6 +174,7 @@ const main = () => {
 
   printEventRow(clock, '-', entities, '-', '-', printEventList())
   while (!stop) {
+    if (entities && entities > maxQueue) maxQueue = entities - 1
     if (stopCondition == '1' && stopConditionValue <= arrivalCount) break
     else if (stopCondition == '2' && stopConditionValue <= departureCount) break
     else if (stopCondition == '3' && stopConditionValue <= clock) {
@@ -247,9 +248,15 @@ const main = () => {
       <h4 class="text-center">Resultados</h4> 
       <span><strong>Solicitudes de Servicio:</strong> ${arrivalCount}</span>
       <span><strong>Entidades Atendidas:</strong> ${departureCount}</span>
-      <span><strong>Entidades en Cola:</strong> ${entities}</span>
+      <span><strong>Maximo de clientes en Cola:</strong> ${maxQueue}</span>
+      <span><strong>Maximo de Entidades en el Sistema:</strong> ${maxQueue+1}</span>
+      <span><strong>Tiempo de Ocio:</strong> ${idleTime.toFixed(2)} Seg</span><span><strong>Tiempo de Uso:</strong> ${(clock - idleTime).toFixed(2)} Seg</span>
       <span><strong>Eventos pendientes:</strong> ${printEventList()}</span>
-      <span><strong>Tiempo de Ocio:</strong> ${idleTime.toFixed(2)} Seg</span>
     </div>
   `)
 }
+
+
+/*
+  push eventos que ocurren a los respectivos arreglos para calcular tiempos entre llegada y otras cosas
+*/
